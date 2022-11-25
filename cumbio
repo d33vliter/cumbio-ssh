@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+cd $(dirname "$0")
+
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
