@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+
+touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
+
+fzf="./bin/fzf" #fzf fuzzy finder
+
+while true;
+do
+op=$(echo "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+
+case $op in
+
+1) read -p "ServerName: " host
+	if ! grep -q $host ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./;then 
+		read -p "UserName: " id
+		read -p "Server IP: " ip
+
+		ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
+
+		echo -e "\n
+		\nHost $host
+			HostName $ip
+			User $id">> $HOME/.ssh/config
+
+		clear && echo "Servidor $host agregado!" && sleep 1s
+	else
+		clear && echo "Servidor $host ya existe" && sleep 1s
+	fi;;
+
+
+2) server=$(cat ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
+	ssh $server;;
+
+
+3) echo "Adios!" && exit 1;;
+
+
+*) echo "No valido, Intente de new" && sleep 1s;;
+esac
+done
