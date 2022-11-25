@@ -2,12 +2,11 @@
 
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
-fzf="./bin/fzf" #fzf fuzzy finder
+fzf=./bin/fzf.exe || ./bin/fzf #fzf fuzzy finder
 
 while true;
 do
-op=$(echo "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
-
+op=$(echo -e "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
 1) read -p "ServerName: " host
