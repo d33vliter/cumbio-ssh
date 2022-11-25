@@ -2,7 +2,7 @@
 
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
-if [ "Msys" == $(uname -o) ]; then
+if [ "Msys" == $(uname -o) ] 2> /dev/null; then
         fzf="./bin/fzf.exe"
 else
         fzf="./bin/fzf"
@@ -10,7 +10,7 @@ fi
 
 while true;
 do
-op=$(echo -e "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+op=$(printf "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
 1) read -p "ServerName: " host
