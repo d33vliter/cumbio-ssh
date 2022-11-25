@@ -15,8 +15,8 @@ do
 op=$(printf "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
-1) read -p "ServerName: " host
-	if ! grep -q $host ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./;then 
+1) clear && read -p "ServerName: " host
+	if ! grep -q $host ~/.ssh/config;then 
 		read -p "UserName: " id
 		read -p "Server IP: " ip
 
@@ -40,6 +40,6 @@ case $op in
 3) clear && echo "Adios!" && exit 1;;
 
 
-*) echo "No valido, Intente de new" && sleep 1s;;
+*) clear && echo "No valido, Intente de new" && sleep 1s;;
 esac
 done
