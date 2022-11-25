@@ -2,9 +2,12 @@
 
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
-fzfl="./bin/fzf" #fzf linux 
-fzfw="./bin/fzf.exe" #fzf winbugs
-fzf=$fzfw 2> /dev/null || $fzfl
+if [ "Msys" == $(uname -o) ]; then
+        fzf="./bin/fzf.exe"
+else
+        fzf="./bin/fzf"
+fi
+
 while true;
 do
 op=$(echo -e "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
