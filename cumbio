@@ -12,20 +12,34 @@ fi
 
 while true;
 do
-op=$(printf "1 - Agregar Servidor\n2 - Acceder SSH\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
-1) clear && read -p "ServerName: " host
+2) clear && read -p "ServerName: " host
 	if ! grep -q $host ~/.ssh/config;then 
 		read -p "UserName: " id
 		read -p "Server IP: " ip
+		read -p "Desea acceder por llave?(y/n): " yn1
+		if [ $yn1 = 'y' ];then
+			read -p "Ingrese Ruta de llave: " key
+		fi
 
-		ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
-
-		echo -e "\n
-		\nHost $host
+		read -p "Desea agregarle un Servidor de salto?(y/n): " yn2
+		if [ $yn2 = 'y' ];then
+			read -p "Hostname del servidor de salto: " hostjump
+			echo -e "\n
+			\nHost $host
 			HostName $ip
-			User $id">> $HOME/.ssh/config
+			User $id
+			IdentityFile $key
+			ProxyJump $hostjump">> $HOME/.ssh/config
+		else
+			echo -e "\n
+			\nHost $host
+			HostName $ip
+			User $id
+			IdentityFile $key">> $HOME/.ssh/config
+		fi
 
 		clear && echo "Servidor $host agregado!" && sleep 1s
 	else
@@ -33,7 +47,7 @@ case $op in
 	fi;;
 
 
-2) server=$(cat ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
+1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
 	ssh $server 2> /dev/null;;
 
 
