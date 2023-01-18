@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 cd $(dirname "$0")
 
@@ -47,7 +47,7 @@ case $op in
 	fi;;
 
 
-1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
+1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User|IdentityFile|ProxyJump" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
 	ssh $server 2> /dev/null;;
 
 
