@@ -2,6 +2,8 @@
 
 cd $(dirname "$0")
 
+sed -i 's/-e//g' ~/.ssh/config
+
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
