@@ -6,8 +6,8 @@ sed -i 's/-e//g' ~/.ssh/config
 
 touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
 
-if [ "Msys" == $(uname -o) ] 2> /dev/null; then
-        fzf="./bin/fzf.exe"
+if [ "Msys" == $(uname -o) ] 2> /dev/null;then
+	fzf="./bin/fzf.exe"
 else
         fzf="./bin/fzf"
 fi
@@ -18,35 +18,48 @@ op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=r
 case $op in
 
 2) clear && read -p "ServerName: " host
-	if ! grep -q "Host $host" ~/.ssh/config;then 
+	if ! grep -q "Host $host" ~/.ssh/config;then
 		read -p "UserName: " id
 		read -p "Server IP: " ip
+		
 		read -p "Desea acceder por llave?(y/n): " yn1
-		if [ $yn1 = 'y' ];then
+		if [ "$yn1" = 'y' ];then
 			read -p "Ingrese Ruta de llave: " key
 		fi
 
 		read -p "Desea agregarle un Servidor de salto?(y/n): " yn2
-		if [[ $yn1 = 'y' && $yn2 = 'y' ]];then
+		if [ "$yn2" = 'y' ];then
 			read -p "Hostname del servidor de salto: " hostjump
-			echo -e "\n
+		fi
+
+		if [ "$yn1" = 'y' ] && [ "$yn2" = 'y' ];then
+			printf "\n
 			\nHost $host
 			HostName $ip
 			User $id
 			IdentityFile $key
-			ProxyJump $hostjump">> $HOME/.ssh/config
-		elif [[ $yn1 = 'y' && $yn2 = 'n' ]];then
-                        echo -e "\n
+			ProxyJump $hostjump">> ~/.ssh/config
+
+		elif [ "$yn1" = 'y' ] && [ "$yn2" = 'n' ];then
+                        printf "\n
                         \nHost $host
                         HostName $ip
                         User $id
-                        IdentityFile $key">> $HOME/.ssh/config
-		elif [[ $yn1 = 'n' && $yn2 = 'n' ]];then
+                        IdentityFile $key">> ~/.ssh/config
+
+		elif [ "$yn1" = 'n' ] && [ "$yn2" = 'y' ];then
+                        printf "\n
+                        \nHost $host
+                        HostName $ip
+                        User $id
+                        ProxyJump $hostjump">> ~/.ssh/config
+
+		elif [ "$yn1" = 'n' ] && [ "$yn2" = 'n' ];then
 			ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
-			echo -e "\n
+			printf "\n
 			\nHost $host
 			HostName $ip
-			User $id">> $HOME/.ssh/config
+			User $id">> ~/.ssh/config
 		else
 			echo "Respuesta incorrecta, intentalo de new"
 		fi
