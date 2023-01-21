@@ -15,6 +15,10 @@ do
 op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
+1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User|IdentityFile|ProxyJump" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
+	ssh $server 2> /dev/null;;
+
+
 2) clear && read -p "ServerName: " host
 	if ! grep -q "Host $host" ~/.ssh/config;then
 		read -p "UserName: " id
@@ -66,10 +70,6 @@ case $op in
 	else
 		clear && echo "Servidor $host ya existe" && sleep 1s
 	fi;;
-
-
-1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User|IdentityFile|ProxyJump" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
-	ssh $server 2> /dev/null;;
 
 
 3) clear && echo "Adios!" && exit 1;;
