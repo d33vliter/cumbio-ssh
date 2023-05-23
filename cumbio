@@ -15,18 +15,20 @@ do
 op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
 case $op in
 
-1) server=$(cat ~/.ssh/config | grep -Ev "HostName|User|IdentityFile|ProxyJump" | awk '{print $2}' | awk /./ | sort -k 3 | $fzf --layout=reverse)
-	ssh $server 2> /dev/null;;
+1) server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump" ~/.ssh/config | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse) 
+		ping -c 1 $server > /dev/null 2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
+		ssh -o StrictHostKeyChecking=no $server 2> /dev/null;;
 
 
-2) clear && read -p "ServerName: " host
+
+2) clear && read -p "Nombre del servidor: " host
 	if ! grep -q "Host $host" ~/.ssh/config;then
-		read -p "UserName: " id
-		read -p "Server IP: " ip
+		read -p "Nombre de Usuario: " id
+		read -p "IP del servidor: " ip
 		
 		read -p "Desea acceder por llave?(y/n): " yn1
 		if [ "$yn1" = 'y' ];then
-			read -p "Ingrese Ruta de llave: " key
+			key=$(find / -type f 2>/dev/null | fzf --prompt="Selecciona la llave: ");chmod 600 $key
 		fi
 
 		read -p "Desea agregarle un Servidor de salto?(y/n): " yn2
@@ -66,9 +68,9 @@ case $op in
 			echo "Respuesta incorrecta, intentalo de new"
 		fi
 
-		clear && echo "Servidor $host agregado!" && sleep 1s
+		clear;echo "Servidor $host agregado!";sleep 1s;clear
 	else
-		clear && echo "Servidor $host ya existe" && sleep 1s
+		clear;echo "Servidor $host ya existe";sleep 1s;clear
 	fi;;
 
 
