@@ -68,9 +68,9 @@ case $op in
 			echo "Respuesta incorrecta, intentalo de new"
 		fi
 
-		clear;echo "Servidor $host agregado!";sleep 1s;clear
+		clear;echo "Servidor $host agregado!";sleep 1s;
 	else
-		clear;echo "Servidor $host ya existe";sleep 1s;clear
+		clear;echo "Servidor $host ya existe";sleep 1s;
 	fi;;
 
 
