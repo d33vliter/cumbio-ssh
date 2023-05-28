@@ -5,9 +5,9 @@ cd $(dirname "$0")
 touch -a ~/.ssh/config # aquí es donde se agregarán los servidores
 
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
-  fzf="./bin/fzf.exe"
+  fzf=$(find ~/* -name "fzf.exe" 2> /dev/null)
 else
-  fzf="./bin/fzf"
+  fzf=$(find ~/* -name "fzf" 2> /dev/null)
 fi
 
 while true; do
