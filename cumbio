@@ -6,8 +6,12 @@ touch -a ~/.ssh/config # aquí es donde se agregarán los servidores
 
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
   fzf=$(find ~/* -name "fzf.exe" 2> /dev/null)
+
+elif [ "Linux" == $(uname -s) ] 2> /dev/null; then
+	fzf=$(which fzf 2> /dev/null) || fzf=$(find ~/* -name "fzf" 2> /dev/null)
+	
 else
-  fzf=$(find ~/* -name "fzf" 2> /dev/null)
+	echo "no se detecta fzf, instalalo :v"
 fi
 
 while true; do
