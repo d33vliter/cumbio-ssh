@@ -2,81 +2,112 @@
 
 cd $(dirname "$0")
 
-touch -a ~/.ssh/config #aqui es donde se agregaran los servidores
+touch -a ~/.ssh/config # aquí es donde se agregarán los servidores
 
-if [ "Msys" == $(uname -o) ] 2> /dev/null;then
-	fzf="./bin/fzf.exe"
+if [ "Msys" == $(uname -o) ] 2> /dev/null; then
+  fzf="./bin/fzf.exe"
 else
-        fzf="./bin/fzf"
+  fzf="./bin/fzf"
 fi
 
-while true;
-do
-op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
-case $op in
+while true; do
+  op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+  case $op in
 
-1) server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump" ~/.ssh/config | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse) 
-		ping -c 1 $server > /dev/null 2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
-		clear;ssh -o StrictHostKeyChecking=no $server 2> /dev/null;;
+    1)
+      server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump" ~/.ssh/config | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+      ping -c 1 $server > /dev/null 2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
+      clear
+      ssh -o StrictHostKeyChecking=no $server 2> /dev/null
+      ;;
 
+    2)
+      while true; do
+        clear;read -p "Nombre del servidor: " host
 
+        if [ -z "$host" ]; then
+          echo "Debe ingresar un nombre de servidor. Inténtelo nuevamente.";sleep 1s
+        elif grep -qx "Host $host" ~/.ssh/config; then
+          echo "$host ya existe";sleep 1s
+        else
+          break
+        fi
+      done
 
-2) clear && read -p "Nombre del servidor: " host
-	if ! grep -q "Host $host" ~/.ssh/config;then
-		read -p "Nombre de Usuario: " id
-		read -p "IP del servidor: " ip
-		
-		read -p "Desea acceder por llave?(y/n): " yn1
-		if [ "$yn1" = 'y' ];then
-			key=$(find / -type f 2>/dev/null | fzf --prompt="Selecciona la llave: ");chmod 600 $key
-		fi
+      while true; do
+        read -p "Nombre de Usuario: " id
 
-		read -p "Desea agregarle un Servidor de salto?(y/n): " yn2
-		if [ "$yn2" = 'y' ];then
-			read -p "Hostname del servidor de salto: " hostjump
-		fi
+        if [ -z "$id" ]; then
+          echo "Debe ingresar un nombre de usuario. Inténtelo nuevamente.";sleep 1s
+        else
+          break
+        fi
+      done
 
-		if [ "$yn1" = 'y' ] && [ "$yn2" = 'y' ];then
-			printf "\n
-			\nHost $host
-			HostName $ip
-			User $id
-			IdentityFile $key
-			ProxyJump $hostjump">> ~/.ssh/config
+      while true; do
+        read -p "IP del servidor: " ip
 
-		elif [ "$yn1" = 'y' ] && [ "$yn2" = 'n' ];then
-                        printf "\n
-                        \nHost $host
-                        HostName $ip
-                        User $id
-                        IdentityFile $key">> ~/.ssh/config
+        if [ -z "$ip" ]; then
+          echo "Debe ingresar una dirección IP. Inténtelo nuevamente.";sleep 1s
+        else
+          break
+        fi
+      done
 
-		elif [ "$yn1" = 'n' ] && [ "$yn2" = 'y' ];then
-                        printf "\n
-                        \nHost $host
-                        HostName $ip
-                        User $id
-                        ProxyJump $hostjump">> ~/.ssh/config
+      read -p "Desea acceder por llave?(y/n): " yn1
+      if [ "$yn1" = 'y' ]; then
+        key=$(find / -type f 2> /dev/null | fzf --prompt="Selecciona la llave: ")
+        chmod 600 $key
+      fi
 
-		elif [ "$yn1" = 'n' ] && [ "$yn2" = 'n' ];then
-			ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
-			printf "\n
-			\nHost $host
-			HostName $ip
-			User $id">> ~/.ssh/config
-		else
-			echo "Respuesta incorrecta, intentalo de new"
-		fi
+      read -p "Desea agregarle un Servidor de salto?(y/n): " yn2
+      if [ "$yn2" = 'y' ]; then
+        read -p "Hostname del servidor de salto: " hostjump
+      fi
 
-		clear;echo "Servidor $host agregado!";sleep 1s;
-	else
-		clear;echo "Servidor $host ya existe";sleep 1s;
-	fi;;
+      if [ "$yn1" = 'y' ] && [ "$yn2" = 'y' ]; then
+        printf "\n
+            \nHost $host
+            HostName $ip
+            User $id
+            IdentityFile $key
+            ProxyJump $hostjump" >> ~/.ssh/config
 
+      elif [ "$yn1" = 'y' ] && [ "$yn2" = 'n' ]; then
+        printf "\n
+            \nHost $host
+            HostName $ip
+            User $id
+            IdentityFile $key" >> ~/.ssh/config
 
-3) clear && echo "Adios!" && exit 1;;
+      elif [ "$yn1" = 'n' ] && [ "$yn2" = 'y' ]; then
+        printf "\n
+            \nHost $host
+            HostName $ip
+            User $id
+            ProxyJump $hostjump" >> ~/.ssh/config
 
+      elif [ "$yn1" = 'n' ] && [ "$yn2" = 'n' ]; then
+        ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
+        printf "\n
+            \nHost $host
+            HostName $ip
+            User $id" >> ~/.ssh/config
+      else
+        echo "Respuesta incorrecta, intentalo de nuevo"
+      fi
 
-*) clear && echo "No valido, Intente de new" && sleep 1s;;
-esac
+      clear
+      echo "Servidor $host agregado!"
+      sleep 1s
+      ;;
+
+    3)
+      clear && echo "Adios!" && exit 1
+      ;;
+
+    *)
+      clear && echo "No válido. Inténtelo de nuevo" && sleep 1s
+      ;;
+  esac
 done
