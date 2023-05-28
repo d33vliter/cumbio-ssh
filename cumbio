@@ -15,7 +15,7 @@ while true; do
   case $op in
 
     1)
-      server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump" ~/.ssh/config | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+      clear;server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
       ping -c 1 $server > /dev/null 2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
       clear
       ssh -o StrictHostKeyChecking=no $server 2> /dev/null
