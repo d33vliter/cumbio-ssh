@@ -1,17 +1,32 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 cd $(dirname "$0")
 
 touch -a ~/.ssh/config # aquí es donde se agregarán los servidores
 
+config=$(head -n3 ~/.ssh/config | paste -sd '')
+rsa="Host *    PubkeyAcceptedKeyTypes=+ssh-rsa    HostKeyAlgorithms=+ssh-rsa"
+
+if [ "$config" == "$rsa" ];then
+        echo ""
+else
+        config=~/.ssh/config
+        sed -i '1i\Host *' $config
+        sed -i '2i\    PubkeyAcceptedKeyTypes=+ssh-rsa' $config
+        sed -i '3i\    HostKeyAlgorithms=+ssh-rsa\n' $config
+fi
+
+
+
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
-  fzf=$(find ~/* -name "fzf.exe" 2> /dev/null)
+  fzf=$(find ./* -name "fzf.exe" 2> /dev/null)
 
 elif [ "Linux" == $(uname -s) ] 2> /dev/null; then
-	fzf=$(which fzf 2> /dev/null) || fzf=$(find ~/* -name "fzf" 2> /dev/null)
-	
+        #fzf=$(which fzf 2> /dev/null) || fzf=$(find ~/* -name "fzf" 2> /dev/null)
+        fzf=$(find ./* -name "fzf" 2> /dev/null)
+
 else
-	echo "no se detecta fzf, instalalo :v"
+        echo "no se detecta fzf, instalalo :v"
 fi
 
 while true; do
@@ -19,10 +34,9 @@ while true; do
   case $op in
 
     1)
-      clear;server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
-      ping -c 1 $server > /dev/null 2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
-      clear
-      ssh -o StrictHostKeyChecking=no $server 2> /dev/null
+      clear;server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+      ping -c 2 $(cat ~/.ssh/config | grep -A 1 $server | grep HostName | awk '{print $2}') > /dev/null #2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
+      ssh -o StrictHostKeyChecking=no $server
       ;;
 
     2)
@@ -60,7 +74,7 @@ while true; do
 
       read -p "Desea acceder por llave?(y/n): " yn1
       if [ "$yn1" = 'y' ]; then
-        key=$(find / -type f 2> /dev/null | fzf --prompt="Selecciona la llave: ")
+        key=$(find ~/ -type f 2> /dev/null | fzf --prompt="Selecciona la llave: ")
         chmod 600 $key
       fi
 
@@ -70,7 +84,7 @@ while true; do
       fi
 
       if [ "$yn1" = 'y' ] && [ "$yn2" = 'y' ]; then
-        printf "\n
+        printf "
             \nHost $host
             HostName $ip
             User $id
@@ -78,22 +92,23 @@ while true; do
             ProxyJump $hostjump" >> ~/.ssh/config
 
       elif [ "$yn1" = 'y' ] && [ "$yn2" = 'n' ]; then
-        printf "\n
+        printf "
             \nHost $host
             HostName $ip
             User $id
             IdentityFile $key" >> ~/.ssh/config
 
       elif [ "$yn1" = 'n' ] && [ "$yn2" = 'y' ]; then
-        printf "\n
+        printf "
             \nHost $host
             HostName $ip
             User $id
             ProxyJump $hostjump" >> ~/.ssh/config
 
       elif [ "$yn1" = 'n' ] && [ "$yn2" = 'n' ]; then
-        ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub $id@$ip
-        printf "\n
+        ping -c 2 $ip
+        ssh-copy-id -o StrictHostKeyChecking=no $id@$ip
+        printf "
             \nHost $host
             HostName $ip
             User $id" >> ~/.ssh/config
