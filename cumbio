@@ -30,7 +30,7 @@ else
 fi
 
 while true; do
-  op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+  op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Ver .ssh/config\n4 - Salir" | $fzf --layout=reverse | awk '{print $1}')
   case $op in
 
     1)
@@ -122,6 +122,10 @@ while true; do
       ;;
 
     3)
+      clear && vim ~/.ssh/config
+      ;;
+
+    4)
       clear && echo "Adios!" && exit 1
       ;;
 
