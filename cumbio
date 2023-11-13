@@ -124,8 +124,7 @@ while true; do
     3)
       clear && nvim ~/.ssh/config
       ;;
-
-	4)clear && \
+4)clear && \
         server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
 
         file=$(ssh $server "find / -type f 2> /dev/null" | "$fzf" --layout=reverse)
