@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 cd $(dirname "$0")
 
@@ -17,7 +17,7 @@ else
 fi
 
 
-
+#Detecta si estas en Winbugs o Linux
 if [ "Msys" == $(uname -o) ] 2> /dev/null; then
   fzf=$(find ./* -name "fzf.exe" 2> /dev/null)
 
@@ -30,13 +30,13 @@ else
 fi
 
 while true; do
-  op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Ver .ssh/config\n4 - Salir" | $fzf --layout=reverse | awk '{print $1}')
+  op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Ver .ssh/config\n4 - Editar Archivo Remoto \n5 - Enviar Archivo\n6 - Descargar Archivo\n7 - Salir" | $fzf --layout=reverse | awk '{print $1}')
   case $op in
 
     1)
       clear;server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
-      ping -c 2 $(cat ~/.ssh/config | grep -A 1 $server | grep HostName | awk '{print $2}') > /dev/null #2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
-      ssh -o StrictHostKeyChecking=no $server
+	  ping -c 2 $(cat ~/.ssh/config | grep -A 1 $server | grep HostName | awk '{print $2}') > /dev/null #2>&1 # Realizar ping al servidor SSH remoto, sobre todo si lo ejecutas desde WSL
+	  ssh -o StrictHostKeyChecking=no $server
       ;;
 
     2)
@@ -122,10 +122,33 @@ while true; do
       ;;
 
     3)
-      clear && vim ~/.ssh/config
+      clear && nvim ~/.ssh/config
       ;;
 
-    4)
+	4)clear && \
+        server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+
+        file=$(ssh $server "find / -type f 2> /dev/null" | "$fzf" --layout=reverse)
+		vim scp://$server/$file
+		;;
+
+	5)clear && \
+        server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+
+		file=$(find ~ -type f -not -path '*/\.git/*' 2> /dev/null | "$fzf" --layout=reverse)
+		dest=$(ssh "$server" "find / -type d 2> /dev/null" | "$fzf" --layout=reverse)
+        scp $file $server:$dest
+		read -n 1 -s -r -p "Enviado. Presiona cualquier tecla para continuar..."
+		;;
+
+	6)clear && \
+        server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
+        file=$(ssh $server "find / -type f 2> /dev/null" | "$fzf" --layout=reverse)
+		dest=$(find ~ -type d 2> /dev/null | "$fzf" --layout=reverse)
+		scp $server:$file $dest
+		read -n 1 -s -r -p "Descargado. Presiona cualquier tecla para continuar..."
+		;;
+    7)
       clear && echo "Adios!" && exit 1
       ;;
 
