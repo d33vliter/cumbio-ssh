@@ -127,21 +127,24 @@ while true; do
     
     4)clear && \
 	server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
-	file=$(ssh $server "find / -type f 2> /dev/null" | "$fzf" --layout=reverse)
+	clear;read -p "Desde que carpeta quieres buscar?: " ruta
+	file=$(ssh $server "find $ruta -type f 2> /dev/null" | fzf --layout=reverse)
 	vim scp://$server/$file
 	;;
 	
     5)clear && \
 	server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
 	file=$(find ~ -type f -not -path '*/\.git/*' 2> /dev/null | "$fzf" --layout=reverse)
-	dest=$(ssh "$server" "find / -type d 2> /dev/null" | "$fzf" --layout=reverse)
+	clear;read -p "Desde que carpeta quieres buscar?: " ruta
+	dest=$(ssh "$server" "find $ruta -type d 2> /dev/null" | "$fzf" --layout=reverse)
 	scp $file $server:$dest
 	read -n 1 -s -r -p "Enviado. Presiona cualquier tecla para continuar..."
 	;;
 
     6)clear && \
 	server=$(grep -Ev "HostName|User|IdentityFile|ProxyJump|+ssh-rsa|+ssh-rsa" ~/.ssh/config 2> /dev/null | sed 's/\*//g' | awk '{print $2}' | awk /./ | sort -k 3 | "$fzf" --layout=reverse)
-	file=$(ssh $server "find / -type f 2> /dev/null" | "$fzf" --layout=reverse)
+	clear;read -p "Desde que carpeta quieres buscar?: " ruta	
+	file=$(ssh $server "find $ruta -type f 2> /dev/null" | "$fzf" --layout=reverse)
 	dest=$(find ~ -type d 2> /dev/null | "$fzf" --layout=reverse)
 	scp $server:$file $dest
 	read -n 1 -s -r -p "Descargado. Presiona cualquier tecla para continuar..."
