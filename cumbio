@@ -17,17 +17,20 @@ else
 fi
 
 
-#Detecta si estas en Winbugs o Linux
-if [ "Msys" == $(uname -o) ] 2> /dev/null; then
-  fzf=$(find ./* -name "fzf.exe" 2> /dev/null)
+#Buscar ubicación de FZF
+fzf=$(which fzf 2> /dev/null || find ./* -name "fzf" 2> /dev/null)
 
-elif [ "Linux" == $(uname -s) ] 2> /dev/null; then
-        #fzf=$(which fzf 2> /dev/null) || fzf=$(find ~/* -name "fzf" 2> /dev/null)
-        fzf=$(find ./* -name "fzf" 2> /dev/null)
-
-else
-        echo "no se detecta fzf, instalalo :v"
+#Verificar si la variable fzf está vacía
+if [ -z "$fzf" ]; then
+    echo "fzf no se encontró en el sistema. Descargando..";sleep 2s
+    mkdir -p bin
+    wget "https://github.com/junegunn/fzf/releases/download/0.46.1/fzf-0.46.1-linux_amd64.tar.gz" -O bin/fzf.tar.gz
+    tar -xzvf bin/fzf.tar.gz -C bin/
+    rm bin/fzf.tar.gz
+    chmod +x bin/fzf
+    fzf=$(which fzf 2> /dev/null || find ./* -name "fzf" 2> /dev/null)
 fi
+
 
 while true; do
   op=$(printf "1 - Acceder SSH\n2 - Agregar Servidor\n3 - Ver .ssh/config\n4 - Editar Archivo Remoto \n5 - Enviar Archivo\n6 - Descargar Archivo\n7 - Salir" | $fzf --layout=reverse | awk '{print $1}')
